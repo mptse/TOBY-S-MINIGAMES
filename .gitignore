@@ -1,0 +1,92 @@
+# ==============================================================================
+# Toby's Minigames - Monorepo .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Variables de Entorno y Credenciales Sensibles
+# ------------------------------------------------------------------------------
+*.env
+*.env.*
+!.env.example
+!*.env.example
+
+# Claves criptográficas y certificados
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa*
+
+# ------------------------------------------------------------------------------
+# 2. Go (Backend - server/)
+# ------------------------------------------------------------------------------
+# Binarios compilados
+/server/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Binarios de pruebas
+*.test
+
+# Dependencias vendored (Go modules)
+/server/vendor/
+vendor/
+
+# Archivos de espacio de trabajo local de Go
+go.work
+go.work.sum
+
+# ------------------------------------------------------------------------------
+# 3. Node.js / JavaScript / Frontend (client/ y games/)
+# ------------------------------------------------------------------------------
+# Dependencias de paquetes
+node_modules/
+.pnp
+.pnp.js
+
+# Salidas de compilación y empaquetadores
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.parcel-cache/
+.turbo/
+.cache/
+
+# Logs de gestores de paquetes
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# 4. Bases de Datos Locales y Docker
+# ------------------------------------------------------------------------------
+# Volúmenes de PostgreSQL y datos persistentes locales
+pgdata/
+postgres-data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Overrides locales de Docker Compose
+docker-compose.override.yml
+
+# ------------------------------------------------------------------------------
+# 5. Logs y Archivos Temporales
+# ------------------------------------------------------------------------------
+*.log
+logs/
+tmp/
+temp/
+
+
+
+
