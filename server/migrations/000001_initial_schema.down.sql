@@ -1,0 +1,12 @@
+-- Reversión de la migración inicial del esquema de base de datos
+
+DROP TABLE IF EXISTS reports CASCADE;
+DROP TABLE IF EXISTS game_reviews CASCADE;
+DROP TABLE IF EXISTS game_profiles CASCADE;
+DROP TABLE IF EXISTS inventories CASCADE;
+DROP TABLE IF EXISTS items CASCADE;
+DROP TABLE IF EXISTS match_history CASCADE;
+DROP TABLE IF EXISTS game_categories CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS games CASCADE;
+DROP TABLE IF EXISTS players CASCADE;
