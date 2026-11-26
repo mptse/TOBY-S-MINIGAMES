@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,16 +27,20 @@ func DefaultPoolConfig() PoolConfig {
 }
 
 // NewConnection abre la conexion a PostgreSQL a traves de GORM utilizando DATABASE_URL.
-func NewConnection(databaseURL string, poolCfg PoolConfig) (*gorm.DB, error) {
+func NewConnection(databaseURL, environment string, poolCfg PoolConfig) (*gorm.DB, error) {
 	if databaseURL == "" {
 		return nil, fmt.Errorf("databaseURL cannot be empty")
 	}
 
-	gormCfg := &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Warn),
+	logLevel := logger.Warn
+	if environment == "development" {
+		logLevel = logger.Info
 	}
 
-	db, err := gorm.Open(postgres.Open(databaseURL), gormCfg)
+	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{
+		Logger: logger.Default.LogMode(logLevel),
+	})
+	
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
@@ -50,4 +55,22 @@ func NewConnection(databaseURL string, poolCfg PoolConfig) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(poolCfg.ConnMaxLifetime)
 
 	return db, nil
+}
+
+// Ping verifica la conectividad activa con la base de datos PostgreSQL.
+func Ping(ctx context.Context, db *gorm.DB) error {
+	if db == nil {
+		return fmt.Errorf("database handle cannot be nil")
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying sql.DB for ping: %w", err)
+	}
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return fmt.Errorf("database ping failed: %w", err)
+	}
+
+	return nil
 }
