@@ -40,7 +40,7 @@ func NewConnection(databaseURL, environment string, poolCfg PoolConfig) (*gorm.D
 	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{
 		Logger: logger.Default.LogMode(logLevel),
 	})
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
