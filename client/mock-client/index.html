@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toby's Minigames — Mock Client</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Toby's Minigames — Mock Client</h1>
+      <p class="subtitle">Panel de prueba temporal para endpoints <code>/api/v1</code></p>
+    </div>
+    <div class="config-bar">
+      <label>
+        API Base URL:
+        <input id="api-base-url" type="text" value="http://localhost:8080/api/v1" />
+      </label>
+      <button id="btn-health" type="button" class="btn-secondary">GET /health</button>
+      <button id="btn-clear-token" type="button" class="btn-danger">Limpiar JWT</button>
+    </div>
+  </header>
+
+  <section class="token-bar">
+    <span><strong>JWT Activo:</strong> <code id="token-preview">Ninguno</code></span>
+  </section>
+
+  <main class="layout">
+    <div class="panels">
+      <!-- Módulo AUTH -->
+      <section class="module-group">
+        <h2>1. Auth (<code>/auth</code>)</h2>
+
+        <form id="form-register" class="card">
+          <h3>POST /auth/register</h3>
+          <input name="email" type="email" placeholder="email@example.com" required />
+          <input name="password" type="password" placeholder="password (min 6)" required />
+          <input name="nickname" type="text" placeholder="nickname" required />
+          <button type="submit">Registrar</button>
+        </form>
+
+        <form id="form-login" class="card">
+          <h3>POST /auth/login</h3>
+          <input name="email" type="email" placeholder="email@example.com" required />
+          <input name="password" type="password" placeholder="password" required />
+          <button type="submit">Iniciar Sesión</button>
+        </form>
+
+        <form id="form-guest" class="card">
+          <h3>POST /auth/guest</h3>
+          <input name="nickname" type="text" placeholder="nickname (opcional)" />
+          <button type="submit">Entrar como Invitado</button>
+        </form>
+      </section>
+
+      <!-- Módulo USERS -->
+      <section class="module-group">
+        <h2>2. Users (<code>/users</code> — Requiere JWT Player)</h2>
+
+        <div class="card">
+          <h3>GET /users/me</h3>
+          <button id="btn-get-me" type="button">Consultar Mi Perfil</button>
+        </div>
+
+        <form id="form-patch-me" class="card">
+          <h3>PATCH /users/me</h3>
+          <input name="nickname" type="text" placeholder="nuevo nickname (opcional)" />
+          <input name="bio" type="text" placeholder="nueva bio (opcional)" />
+          <input name="avatar_path" type="text" placeholder="avatar_path (opcional)" />
+          <button type="submit">Actualizar Perfil</button>
+        </form>
+
+        <form id="form-get-subprofile" class="card">
+          <h3>GET /users/me/games/:slug</h3>
+          <input name="slug" type="text" placeholder="slug del juego (ej. trivia)" required />
+          <button type="submit">Consultar Subperfil</button>
+        </form>
+      </section>
+
+      <!-- Módulo GAMES -->
+      <section class="module-group">
+        <h2>3. Games (<code>/games</code>)</h2>
+
+        <form id="form-list-games" class="card">
+          <h3>GET /games</h3>
+          <input name="category" type="text" placeholder="category slug (opcional)" />
+          <button type="submit">Listar Juegos</button>
+        </form>
+
+        <form id="form-get-game" class="card">
+          <h3>GET /games/:slug</h3>
+          <input name="slug" type="text" placeholder="slug del juego (ej. memory)" required />
+          <button type="submit">Ver Detalle</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Inspector de Respuesta -->
+    <aside class="inspector">
+      <div class="inspector-header">
+        <h2>Respuesta HTTP</h2>
+        <span id="response-status" class="badge">—</span>
+      </div>
+      <div id="response-endpoint" class="endpoint-label">Esperando petición...</div>
+      <pre><code id="response-body">{}</code></pre>
+    </aside>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
