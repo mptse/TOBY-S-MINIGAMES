@@ -166,3 +166,24 @@ Todas las respuestas expuestas por los handlers deben utilizar el formato unific
   }
 }
 ```
+
+---
+
+## 8. Contratos Públicos de Catálogo (`games`)
+
+1. **`GET /api/v1/categories`:**
+   - Retorna todas las categorías disponibles ordenadas alfabéticamente por `name_category`:
+     ```json
+     {
+       "success": true,
+       "data": { "categories": [ { "category_id": 1, "name_category": "...", "category_desc": "...", "category_slug": "..." } ] },
+       "message": "Categories retrieved successfully"
+     }
+     ```
+2. **`GET /api/v1/games` (con filtro opcional `?category=<slug>`):**
+   - Sin parámetro `category`: retorna todos los minijuegos activos (`is_active = true`).
+   - Con `category=<slug>`:
+     - Si el `slug` **no existe** en `categories`, responde `404 NOT_FOUND`.
+     - Si el `slug` **existe** pero no tiene juegos activos asignados, responde `200 OK` con `{ "games": [] }` (lista vacía, nunca `null`).
+3. **`GET /api/v1/games/:slug`:**
+   - Retorna el detalle completo del minijuego incluyendo su arreglo `categories`, o `404 NOT_FOUND` si el `slug` no existe.

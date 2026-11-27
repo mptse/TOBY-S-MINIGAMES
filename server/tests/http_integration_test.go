@@ -201,3 +201,101 @@ func TestHTTPIntegration_AuthUsersAndGames(t *testing.T) {
 		t.Fatalf("expected 404 NOT_FOUND for unknown slug, got %d", rec.Code)
 	}
 }
+
+func TestHTTPIntegration_CatalogAndCategories(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set; skipping catalog HTTP integration test")
+	}
+
+	db, err := database.NewConnection(dsn, "development", database.DefaultPoolConfig())
+	if err != nil {
+		t.Fatalf("failed connecting to PostgreSQL: %v", err)
+	}
+
+	jwtMgr, err := security.NewJWTManager("test", 24)
+	if err != nil {
+		t.Fatalf("failed creating JWT manager: %v", err)
+	}
+
+	router := httpserver.NewRouter(db, jwtMgr, "development")
+
+	// 1. List all categories (expects seeded categories ordered alphabetically)
+	rec, env := doJSONRequest(t, router, http.MethodGet, "/api/v1/categories", nil, "")
+	if rec.Code != http.StatusOK || !env.Success {
+		t.Fatalf("expected 200 for GET /categories, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	var catData struct {
+		Categories []struct {
+			CategorySlug string `json:"category_slug"`
+		} `json:"categories"`
+	}
+	_ = json.Unmarshal(env.Data, &catData)
+	if len(catData.Categories) < 3 {
+		t.Fatalf("expected at least 3 seeded categories, got %d", len(catData.Categories))
+	}
+
+	// 2. Unfiltered catalog vs filtered by ?category=memoria
+	rec, env = doJSONRequest(t, router, http.MethodGet, "/api/v1/games", nil, "")
+	if rec.Code != http.StatusOK || !env.Success {
+		t.Fatalf("expected 200 for GET /games, got %d", rec.Code)
+	}
+
+	rec, env = doJSONRequest(t, router, http.MethodGet, "/api/v1/games?category=memoria", nil, "")
+	if rec.Code != http.StatusOK || !env.Success {
+		t.Fatalf("expected 200 for GET /games?category=memoria, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	var filteredData struct {
+		Games []struct {
+			NameSlug string `json:"name_slug"`
+		} `json:"games"`
+	}
+	_ = json.Unmarshal(env.Data, &filteredData)
+	if len(filteredData.Games) == 0 || filteredData.Games[0].NameSlug != "memory" {
+		t.Fatalf("expected 'memory' game for category=memoria, got %+v", filteredData.Games)
+	}
+
+	// 3. Existing category without games returns [] (200 OK), unknown category returns 404
+	emptySlug := "empty-cat-" + uuid.NewString()[:8]
+	catRepo := gamesInfra.NewPostgresCategoryRepository(db)
+	emptyCat, _ := gamesDomain.NewCategory("Empty Category", emptySlug, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := catRepo.Create(ctx, emptyCat); err != nil {
+		t.Fatalf("failed creating temporary empty category: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanCtx, cleanCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanCancel()
+		db.WithContext(cleanCtx).Where("category_id = ?", emptyCat.ID).Delete(&gamesInfra.CategoryModel{})
+	})
+
+	rec, env = doJSONRequest(t, router, http.MethodGet, "/api/v1/games?category="+emptySlug, nil, "")
+	if rec.Code != http.StatusOK || !env.Success {
+		t.Fatalf("expected 200 with empty list for existing category without games, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	if string(env.Data) != `{"games":[]}` {
+		t.Fatalf("expected {\"games\":[]}, got %s", string(env.Data))
+	}
+
+	rec, env = doJSONRequest(t, router, http.MethodGet, "/api/v1/games?category=non-existent-cat", nil, "")
+	if rec.Code != http.StatusNotFound || env.Error == nil || env.Error.Code != "NOT_FOUND" {
+		t.Fatalf("expected 404 NOT_FOUND for unknown category, got %d (%s)", rec.Code, rec.Body.String())
+	}
+
+	// 4. Game detail /games/trivia includes associated categories
+	rec, env = doJSONRequest(t, router, http.MethodGet, "/api/v1/games/trivia", nil, "")
+	if rec.Code != http.StatusOK || !env.Success {
+		t.Fatalf("expected 200 for GET /games/trivia, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	var detailData struct {
+		NameSlug   string `json:"name_slug"`
+		Categories []struct {
+			CategorySlug string `json:"category_slug"`
+		} `json:"categories"`
+	}
+	_ = json.Unmarshal(env.Data, &detailData)
+	if detailData.NameSlug != "trivia" || len(detailData.Categories) < 2 {
+		t.Fatalf("expected trivia with >= 2 categories, got %+v", detailData)
+	}
+}
