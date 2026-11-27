@@ -194,3 +194,52 @@ pre {
   font-size: 0.82rem;
   color: #a5f3fc;
 }
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tab-btn {
+  background: #334155;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.tab-btn.active {
+  background: #0284c7;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.game-tile {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.65rem;
+  font-size: 0.82rem;
+}
+
+.game-tile strong {
+  display: block;
+  color: #f8fafc;
+  margin-bottom: 0.25rem;
+}
+
+.game-tile p {
+  margin: 0 0 0.35rem;
+  color: #94a3b8;
+}

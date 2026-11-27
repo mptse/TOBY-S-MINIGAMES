@@ -99,4 +99,66 @@ document.getElementById("form-get-game").addEventListener("submit", async (e) =>
   renderResponse(res);
 });
 
+function renderGamesGrid(games) {
+  const grid = document.getElementById("games-grid");
+  if (!games || games.length === 0) {
+    grid.innerHTML = `<span class="endpoint-label">Sin juegos para esta categoría.</span>`;
+    return;
+  }
+
+  grid.innerHTML = games
+    .map(
+      (g) => `
+      <div class="game-tile">
+        <strong>${g.name} (<code>${g.name_slug}</code>)</strong>
+        <p>${g.description}</p>
+        <small>Thumb: <code>${g.thumbnail_slug}</code></small>
+      </div>`
+    )
+    .join("");
+}
+
+async function filterCatalogByCategory(slug, activeBtn) {
+  document.querySelectorAll("#category-tabs .tab-btn").forEach((b) => b.classList.remove("active"));
+  if (activeBtn) activeBtn.classList.add("active");
+
+  const query = slug ? `?category=${encodeURIComponent(slug)}` : "";
+  const res = await apiRequest("GET", `/games${query}`);
+  renderResponse(res);
+  if (res.ok && res.data?.data?.games) {
+    renderGamesGrid(res.data.data.games);
+  }
+}
+
+async function loadCatalogCategories() {
+  const tabsEl = document.getElementById("category-tabs");
+  const res = await apiRequest("GET", "/categories");
+  if (!res.ok || !res.data?.data?.categories) {
+    tabsEl.innerHTML = `<span class="endpoint-label">API desconectada o sin categorías.</span>`;
+    return;
+  }
+
+  tabsEl.innerHTML = "";
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "tab-btn active";
+  allBtn.textContent = "Todas";
+  allBtn.addEventListener("click", () => filterCatalogByCategory("", allBtn));
+  tabsEl.appendChild(allBtn);
+
+  for (const cat of res.data.data.categories) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tab-btn";
+    btn.textContent = cat.name_category;
+    btn.addEventListener("click", () => filterCatalogByCategory(cat.category_slug, btn));
+    tabsEl.appendChild(btn);
+  }
+
+  await filterCatalogByCategory("", allBtn);
+}
+
+document.getElementById("btn-reload-catalog").addEventListener("click", loadCatalogCategories);
+
 updateTokenPreview();
+loadCatalogCategories();

@@ -80,17 +80,26 @@
 
       <!-- Módulo GAMES -->
       <section class="module-group">
-        <h2>3. Games (<code>/games</code>)</h2>
+        <h2>3. Games &amp; Categories (<code>/games</code>, <code>/categories</code>)</h2>
+
+        <div class="card">
+          <div class="card-header-row">
+            <h3>Catálogo Interactivo en Tiempo Real</h3>
+            <button id="btn-reload-catalog" type="button" class="btn-secondary">Recargar Categorías</button>
+          </div>
+          <div id="category-tabs" class="category-tabs"></div>
+          <div id="games-grid" class="games-grid"></div>
+        </div>
 
         <form id="form-list-games" class="card">
-          <h3>GET /games</h3>
-          <input name="category" type="text" placeholder="category slug (opcional)" />
+          <h3>GET /games (Manual)</h3>
+          <input name="category" type="text" placeholder="categoría slug (ej. memoria, opcional)" />
           <button type="submit">Listar Juegos</button>
         </form>
 
         <form id="form-get-game" class="card">
           <h3>GET /games/:slug</h3>
-          <input name="slug" type="text" placeholder="slug del juego (ej. memory)" required />
+          <input name="slug" type="text" placeholder="slug del juego (ej. trivia)" required />
           <button type="submit">Ver Detalle</button>
         </form>
       </section>
