@@ -5,8 +5,11 @@ import (
 	"errors"
 )
 
-// ErrGameNotFound indica que el minijuego solicitado no existe en el catalogo.
-var ErrGameNotFound = errors.New("game not found")
+// Errores centinela de dominio para el modulo games.
+var (
+	ErrGameNotFound     = errors.New("game not found")
+	ErrCategoryNotFound = errors.New("category not found")
+)
 
 // GameRepository define las operaciones de persistencia para el catalogo de minijuegos.
 type GameRepository interface {
@@ -20,5 +23,6 @@ type GameRepository interface {
 // CategoryRepository define las operaciones de persistencia para las categorias de minijuegos.
 type CategoryRepository interface {
 	Create(ctx context.Context, category *Category) error
+	FindBySlug(ctx context.Context, slug string) (*Category, error)
 	ListAll(ctx context.Context) ([]*Category, error)
 }

@@ -15,7 +15,7 @@ import (
 	usersHandler "github.com/toby-minigames/server/internal/modules/users/handler"
 	usersInfra "github.com/toby-minigames/server/internal/modules/users/infrastructure"
 	"github.com/toby-minigames/server/internal/shared/database"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 	"github.com/toby-minigames/server/internal/shared/middleware"
 	"github.com/toby-minigames/server/internal/shared/response"
 	"github.com/toby-minigames/server/internal/shared/security"
@@ -35,7 +35,7 @@ func NewRouter(db *gorm.DB, jwtMgr *security.JWTManager, environment string) *gi
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 		defer cancel()
 		if err := database.Ping(ctx, db); err != nil {
-			response.Error(c, apperrors.Internal("database healthcheck failed"))
+			response.Error(c, appErrors.Internal("database healthcheck failed"))
 			return
 		}
 		response.Success(c, http.StatusOK, gin.H{"status": "ok"}, "Service is healthy")
@@ -44,10 +44,11 @@ func NewRouter(db *gorm.DB, jwtMgr *security.JWTManager, environment string) *gi
 	playerRepo := usersInfra.NewPostgresPlayerRepository(db)
 	profileRepo := usersInfra.NewPostgresGameProfileRepository(db)
 	gameRepo := gamesInfra.NewPostgresGameRepository(db)
+	categoryRepo := gamesInfra.NewPostgresCategoryRepository(db)
 
 	authSvc := authApp.NewAuthService(playerRepo, jwtMgr)
 	userSvc := usersApp.NewUserService(playerRepo, profileRepo, gameRepo)
-	gameSvc := gamesApp.NewGameService(gameRepo)
+	gameSvc := gamesApp.NewGameService(gameRepo, categoryRepo)
 
 	v1 := router.Group("/api/v1")
 	authHandler.NewAuthHandler(authSvc).RegisterRoutes(v1)

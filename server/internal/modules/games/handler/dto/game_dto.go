@@ -45,16 +45,21 @@ func FromDomainGameSummary(g *gamesDomain.Game) GameSummaryResponse {
 	}
 }
 
+// FromDomainCategory convierte una entidad Category de dominio en su DTO de respuesta.
+func FromDomainCategory(c gamesDomain.Category) CategoryResponse {
+	return CategoryResponse{
+		CategoryID:   c.ID,
+		NameCategory: c.Name,
+		CategoryDesc: c.Description,
+		CategorySlug: c.Slug,
+	}
+}
+
 // FromDomainGameDetail convierte una entidad Game de dominio a su detalle DTO completo.
 func FromDomainGameDetail(g *gamesDomain.Game) GameDetailResponse {
 	categories := make([]CategoryResponse, len(g.Categories))
 	for i, c := range g.Categories {
-		categories[i] = CategoryResponse{
-			CategoryID:   c.ID,
-			NameCategory: c.Name,
-			CategoryDesc: c.Description,
-			CategorySlug: c.Slug,
-		}
+		categories[i] = FromDomainCategory(c)
 	}
 
 	return GameDetailResponse{
