@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	usersDomain "github.com/toby-minigames/server/internal/modules/users/domain"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 	"github.com/toby-minigames/server/internal/shared/security"
 )
 
@@ -39,36 +39,36 @@ func (s *AuthService) Register(ctx context.Context, email, password, nickname st
 	nickname = strings.TrimSpace(nickname)
 
 	if email == "" || !strings.Contains(email, "@") || len(password) < 6 || nickname == "" {
-		return "", nil, apperrors.Validation("invalid registration fields", map[string]string{
+		return "", nil, appErrors.Validation("invalid registration fields", map[string]string{
 			"requirements": "valid email, password >= 6 chars, and non-empty nickname are required",
 		})
 	}
 
 	_, err := s.playerRepo.FindByEmail(ctx, email)
 	if err == nil {
-		return "", nil, apperrors.Conflict("email is already registered")
+		return "", nil, appErrors.Conflict("email is already registered")
 	}
 	if !errors.Is(err, usersDomain.ErrPlayerNotFound) {
-		return "", nil, apperrors.Internal("failed to verify email availability")
+		return "", nil, appErrors.Internal("failed to verify email availability")
 	}
 
 	hash, err := security.HashPassword(password)
 	if err != nil {
-		return "", nil, apperrors.Internal("failed to process password")
+		return "", nil, appErrors.Internal("failed to process password")
 	}
 
 	player, err := usersDomain.NewPlayer(email, hash, nickname)
 	if err != nil {
-		return "", nil, apperrors.Validation(err.Error(), nil)
+		return "", nil, appErrors.Validation(err.Error(), nil)
 	}
 
 	if err := s.playerRepo.Create(ctx, player); err != nil {
-		return "", nil, apperrors.Internal("failed to create player account")
+		return "", nil, appErrors.Internal("failed to create player account")
 	}
 
 	token, err := s.jwtMgr.GeneratePlayerToken(player.ID.String(), string(player.Role))
 	if err != nil {
-		return "", nil, apperrors.Internal("failed to generate authentication token")
+		return "", nil, appErrors.Internal("failed to generate authentication token")
 	}
 
 	return token, player, nil
@@ -78,24 +78,24 @@ func (s *AuthService) Register(ctx context.Context, email, password, nickname st
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, *usersDomain.Player, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" || password == "" {
-		return "", nil, apperrors.Validation("email and password are required", nil)
+		return "", nil, appErrors.Validation("email and password are required", nil)
 	}
 
 	player, err := s.playerRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, usersDomain.ErrPlayerNotFound) {
-			return "", nil, apperrors.Unauthorized("invalid email or password")
+			return "", nil, appErrors.Unauthorized("invalid email or password")
 		}
-		return "", nil, apperrors.Internal("failed to fetch player account")
+		return "", nil, appErrors.Internal("failed to fetch player account")
 	}
 
 	if err := security.CheckPassword(player.Password, password); err != nil {
-		return "", nil, apperrors.Unauthorized("invalid email or password")
+		return "", nil, appErrors.Unauthorized("invalid email or password")
 	}
 
 	token, err := s.jwtMgr.GeneratePlayerToken(player.ID.String(), string(player.Role))
 	if err != nil {
-		return "", nil, apperrors.Internal("failed to generate authentication token")
+		return "", nil, appErrors.Internal("failed to generate authentication token")
 	}
 
 	return token, player, nil
@@ -113,7 +113,7 @@ func (s *AuthService) Guest(nickname string) (string, *GuestSession, error) {
 	guestID := guestUUID.String()
 	token, err := s.jwtMgr.GenerateGuestToken(guestID, nickname)
 	if err != nil {
-		return "", nil, apperrors.Internal("failed to generate guest token")
+		return "", nil, appErrors.Internal("failed to generate guest token")
 	}
 
 	return token, &GuestSession{

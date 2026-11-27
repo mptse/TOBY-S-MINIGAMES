@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	gamesDomain "github.com/toby-minigames/server/internal/modules/games/domain"
 	usersDomain "github.com/toby-minigames/server/internal/modules/users/domain"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 )
 
 // UserService orquesta los casos de uso de perfil de jugador y subperfiles por minijuego.
@@ -36,9 +36,9 @@ func (s *UserService) GetProfile(ctx context.Context, playerID uuid.UUID) (*user
 	player, err := s.playerRepo.FindByID(ctx, playerID)
 	if err != nil {
 		if errors.Is(err, usersDomain.ErrPlayerNotFound) {
-			return nil, apperrors.NotFound("player not found")
+			return nil, appErrors.NotFound("player not found")
 		}
-		return nil, apperrors.Internal("failed to fetch player profile")
+		return nil, appErrors.Internal("failed to fetch player profile")
 	}
 	return player, nil
 }
@@ -53,7 +53,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, playerID uuid.UUID, nic
 	if nickname != nil {
 		trimmed := strings.TrimSpace(*nickname)
 		if trimmed == "" {
-			return nil, apperrors.Validation("nickname cannot be empty", nil)
+			return nil, appErrors.Validation("nickname cannot be empty", nil)
 		}
 		player.Nickname = trimmed
 	}
@@ -66,13 +66,13 @@ func (s *UserService) UpdateProfile(ctx context.Context, playerID uuid.UUID, nic
 	if avatarPath != nil {
 		trimmedAvatar := strings.TrimSpace(*avatarPath)
 		if trimmedAvatar == "" {
-			return nil, apperrors.Validation("avatar_path cannot be empty", nil)
+			return nil, appErrors.Validation("avatar_path cannot be empty", nil)
 		}
 		player.AvatarPath = trimmedAvatar
 	}
 
 	if err := s.playerRepo.Update(ctx, player); err != nil {
-		return nil, apperrors.Internal("failed to update player profile")
+		return nil, appErrors.Internal("failed to update player profile")
 	}
 
 	return player, nil
@@ -83,17 +83,17 @@ func (s *UserService) GetGameProfile(ctx context.Context, playerID uuid.UUID, ga
 	game, err := s.gameRepo.FindBySlug(ctx, strings.TrimSpace(gameSlug))
 	if err != nil {
 		if errors.Is(err, gamesDomain.ErrGameNotFound) {
-			return nil, apperrors.NotFound("game not found")
+			return nil, appErrors.NotFound("game not found")
 		}
-		return nil, apperrors.Internal("failed to resolve game by slug")
+		return nil, appErrors.Internal("failed to resolve game by slug")
 	}
 
 	profile, err := s.profileRepo.FindByPlayerAndGame(ctx, playerID, game.ID)
 	if err != nil {
 		if errors.Is(err, usersDomain.ErrGameProfileNotFound) {
-			return nil, apperrors.NotFound("game profile not found for this player")
+			return nil, appErrors.NotFound("game profile not found for this player")
 		}
-		return nil, apperrors.Internal("failed to fetch game profile")
+		return nil, appErrors.Internal("failed to fetch game profile")
 	}
 
 	return profile, nil

@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/toby-minigames/server/internal/modules/users/application"
 	"github.com/toby-minigames/server/internal/modules/users/handler/dto"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 	"github.com/toby-minigames/server/internal/shared/middleware"
 	"github.com/toby-minigames/server/internal/shared/response"
 )
@@ -34,13 +34,13 @@ func (h *UserHandler) RegisterRoutes(rg *gin.RouterGroup, authMW, playerOnlyMW g
 func parsePlayerID(c *gin.Context) (uuid.UUID, bool) {
 	claims, ok := middleware.GetClaims(c)
 	if !ok {
-		response.Error(c, apperrors.Unauthorized("missing authentication claims"))
+		response.Error(c, appErrors.Unauthorized("missing authentication claims"))
 		return uuid.Nil, false
 	}
 
 	playerID, err := uuid.Parse(claims.Subject)
 	if err != nil {
-		response.Error(c, apperrors.Unauthorized("invalid player subject in token"))
+		response.Error(c, appErrors.Unauthorized("invalid player subject in token"))
 		return uuid.Nil, false
 	}
 
@@ -72,7 +72,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 
 	var req dto.UpdateMeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperrors.Validation("invalid request payload", err.Error()))
+		response.Error(c, appErrors.Validation("invalid request payload", err.Error()))
 		return
 	}
 

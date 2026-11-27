@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 	"github.com/toby-minigames/server/internal/shared/response"
 	"github.com/toby-minigames/server/internal/shared/security"
 )
@@ -17,7 +17,7 @@ func AuthRequired(jwtMgr *security.JWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			response.Error(c, apperrors.Unauthorized("missing or malformed authorization header"))
+			response.Error(c, appErrors.Unauthorized("missing or malformed authorization header"))
 			c.Abort()
 			return
 		}
@@ -25,7 +25,7 @@ func AuthRequired(jwtMgr *security.JWTManager) gin.HandlerFunc {
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := jwtMgr.VerifyToken(strings.TrimSpace(tokenStr))
 		if err != nil {
-			response.Error(c, apperrors.Unauthorized("invalid or expired token"))
+			response.Error(c, appErrors.Unauthorized("invalid or expired token"))
 			c.Abort()
 			return
 		}
@@ -40,13 +40,13 @@ func PlayerOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, ok := GetClaims(c)
 		if !ok {
-			response.Error(c, apperrors.Unauthorized("missing authentication claims"))
+			response.Error(c, appErrors.Unauthorized("missing authentication claims"))
 			c.Abort()
 			return
 		}
 
 		if claims.IsGuest || claims.Role == "guest" {
-			response.Error(c, apperrors.Forbidden("guest accounts cannot access this resource"))
+			response.Error(c, appErrors.Forbidden("guest accounts cannot access this resource"))
 			c.Abort()
 			return
 		}

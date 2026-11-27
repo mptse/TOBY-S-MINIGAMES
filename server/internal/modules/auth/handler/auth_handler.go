@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/toby-minigames/server/internal/modules/auth/application"
 	"github.com/toby-minigames/server/internal/modules/auth/handler/dto"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 	"github.com/toby-minigames/server/internal/shared/response"
 )
 
@@ -34,7 +34,7 @@ func (h *AuthHandler) RegisterRoutes(rg *gin.RouterGroup) {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperrors.Validation("invalid request payload", err.Error()))
+		response.Error(c, appErrors.Validation("invalid request payload", err.Error()))
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperrors.Validation("invalid request payload", err.Error()))
+		response.Error(c, appErrors.Validation("invalid request payload", err.Error()))
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Guest(c *gin.Context) {
 	var req dto.GuestRequest
 	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
-		response.Error(c, apperrors.Validation("invalid request payload", err.Error()))
+		response.Error(c, appErrors.Validation("invalid request payload", err.Error()))
 		return
 	}
 

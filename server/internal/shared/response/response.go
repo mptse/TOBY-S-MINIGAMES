@@ -2,7 +2,7 @@ package response
 
 import (
 	"github.com/gin-gonic/gin"
-	apperrors "github.com/toby-minigames/server/internal/shared/errors"
+	appErrors "github.com/toby-minigames/server/internal/shared/errors"
 )
 
 // EnvelopeSuccess representa la estructura unificada de respuesta exitosa.
@@ -36,7 +36,7 @@ func Success(c *gin.Context, status int, data any, message string) {
 
 // Error mapea un error a su codigo HTTP y envia la respuesta JSON de error estandar.
 func Error(c *gin.Context, err error) {
-	appErr := apperrors.FromError(err)
+	appErr := appErrors.FromError(err)
 	c.JSON(appErr.HTTPStatus, EnvelopeError{
 		Success: false,
 		Error: ErrorBody{
