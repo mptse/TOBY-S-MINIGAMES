@@ -17,5 +17,32 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: tobys_api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      ENVIRONMENT: development
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/tobys_minigames?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret}
+      JWT_EXPIRATION_HOURS: "24"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mock-client:
+    image: nginx:alpine
+    container_name: tobys_mock_client
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./client/mock-client:/usr/share/nginx/html:ro
+
 volumes:
   postgres_data:
