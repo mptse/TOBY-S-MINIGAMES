@@ -47,7 +47,7 @@ func (r *PostgresGameProfileRepository) FindByPlayerAndGame(ctx context.Context,
 		First(&model).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("game profile not found: %w", err)
+			return nil, fmt.Errorf("%w: %v", domain.ErrGameProfileNotFound, err)
 		}
 		return nil, fmt.Errorf("failed to find game profile: %w", err)
 	}

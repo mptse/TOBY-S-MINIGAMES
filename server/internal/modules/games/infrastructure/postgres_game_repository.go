@@ -34,7 +34,7 @@ func (r *PostgresGameRepository) FindByID(ctx context.Context, id int) (*domain.
 	var model GameModel
 	if err := r.db.WithContext(ctx).Preload("Categories").Where("game_id = ?", id).First(&model).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("game not found: %w", err)
+			return nil, fmt.Errorf("%w: %v", domain.ErrGameNotFound, err)
 		}
 		return nil, fmt.Errorf("failed to find game by ID: %w", err)
 	}
@@ -46,7 +46,7 @@ func (r *PostgresGameRepository) FindBySlug(ctx context.Context, slug string) (*
 	var model GameModel
 	if err := r.db.WithContext(ctx).Preload("Categories").Where("name_slug = ?", slug).First(&model).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("game not found by slug: %w", err)
+			return nil, fmt.Errorf("%w: %v", domain.ErrGameNotFound, err)
 		}
 		return nil, fmt.Errorf("failed to find game by slug: %w", err)
 	}
@@ -58,6 +58,26 @@ func (r *PostgresGameRepository) ListActive(ctx context.Context) ([]*domain.Game
 	var models []GameModel
 	if err := r.db.WithContext(ctx).Preload("Categories").Where("is_active = ?", true).Find(&models).Error; err != nil {
 		return nil, fmt.Errorf("failed to list active games: %w", err)
+	}
+
+	games := make([]*domain.Game, len(models))
+	for i := range models {
+		games[i] = models[i].ToDomain()
+	}
+	return games, nil
+}
+
+// ListActiveByCategory retorna los minijuegos activos filtrados por el slug de una categoria.
+func (r *PostgresGameRepository) ListActiveByCategory(ctx context.Context, categorySlug string) ([]*domain.Game, error) {
+	var models []GameModel
+	err := r.db.WithContext(ctx).
+		Preload("Categories").
+		Joins("JOIN game_categories gc ON gc.game_id = games.game_id").
+		Joins("JOIN categories c ON c.category_id = gc.category_id").
+		Where("games.is_active = ? AND c.category_slug = ?", true, categorySlug).
+		Find(&models).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to list active games by category: %w", err)
 	}
 
 	games := make([]*domain.Game, len(models))

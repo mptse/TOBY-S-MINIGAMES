@@ -2,8 +2,15 @@ package domain
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+)
+
+// Errores de dominio para repositorios del modulo users.
+var (
+	ErrPlayerNotFound      = errors.New("player not found")
+	ErrGameProfileNotFound = errors.New("game profile not found")
 )
 
 // PlayerRepository define las operaciones de persistencia para entidades Player.

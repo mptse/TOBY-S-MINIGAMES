@@ -34,7 +34,7 @@ func (r *PostgresPlayerRepository) FindByID(ctx context.Context, id uuid.UUID) (
 	var model PlayerModel
 	if err := r.db.WithContext(ctx).Where("player_id = ?", id).First(&model).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("player not found: %w", err)
+			return nil, fmt.Errorf("%w: %v", domain.ErrPlayerNotFound, err)
 		}
 		return nil, fmt.Errorf("failed to find player by ID: %w", err)
 	}
@@ -46,7 +46,7 @@ func (r *PostgresPlayerRepository) FindByEmail(ctx context.Context, email string
 	var model PlayerModel
 	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&model).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("player not found by email: %w", err)
+			return nil, fmt.Errorf("%w: %v", domain.ErrPlayerNotFound, err)
 		}
 		return nil, fmt.Errorf("failed to find player by email: %w", err)
 	}
